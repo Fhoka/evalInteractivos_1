@@ -154,7 +154,6 @@ void task3(){
                  digitalWrite(led, HIGH);
                  ledStatus = true;
                  taskState = TaskStates::RAPIDO;
-
                 }
             } 
          break;     
