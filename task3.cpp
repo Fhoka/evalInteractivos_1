@@ -7,7 +7,8 @@ static bool compareKeys(BUTTONS *pSecret, BUTTONS *pKey)
     bool correct = true;
     for (uint8_t i = 0; i < 5; i++)
     {
-        if (pSecret[i] != pKey[i]){
+        if (pSecret[i] != pKey[i])
+        {
             correct = false;
             break;
         }
@@ -16,10 +17,18 @@ static bool compareKeys(BUTTONS *pSecret, BUTTONS *pKey)
     return correct;
 }
 
-void task3(){
+void task3()
+{
     enum class TaskStates
     {
-        INIT,LENTO, MEDIO, RAPIDO, ENCENDIDO, APAGADO, ESPERA1, ESPERA2
+        INIT,
+        LENTO,
+        MEDIO,
+        RAPIDO,
+        ENCENDIDO,
+        APAGADO,
+        ESPERA1,
+        ESPERA2
     };
     static TaskStates taskState = TaskStates::LENTO;
     const uint8_t led = 11;
@@ -31,7 +40,7 @@ void task3(){
     static BUTTONS disarmKey[5] = {BUTTONS::NONE};
     static uint32_t lastTime;
     static constexpr uint32_t INTERVALSLOW = 1000;
-    static constexpr uint32_t INTERVALMEDIUM= 500;
+    static constexpr uint32_t INTERVALMEDIUM = 500;
     static constexpr uint32_t INTERVALFAST = 250;
     static uint8_t val;
     static uint8_t keyCounter;
@@ -39,160 +48,176 @@ void task3(){
 
     switch (taskState)
     {
-        case TaskStates::INIT:
-        {
-            pinMode(led, OUTPUT);
-            lastTime = millis();
-            taskState = TaskStates::LENTO;
-            break;
-        }
-        case TaskStates::LENTO:
-        {
-            uint32_t currentTime = millis();
-            if( (currentTime - lastTime) >= INTERVALSLOW ){
-                lastTime = currentTime;
-                digitalWrite(led,ledStatus);
-                ledStatus = !ledStatus;
-                Serial.print("LENTO");
-                Serial.print("\n");
-            }
-            if (buttonEvt.trigger == true)
-           {
-                buttonEvt.trigger = false;
-                if (buttonEvt.whichButton == BUTTONS::TWO_BTN){
-                 taskState = TaskStates::MEDIO;   
-                }
-                else if (buttonEvt.whichButton == BUTTONS::ONE_BTN){
-                 taskState = TaskStates::ESPERA1;     
-                }
-            
-            } 
-         break;
-        }
+    case TaskStates::INIT:
+    {
 
-        case TaskStates::ESPERA1:
+        pinMode(led, OUTPUT);
+        ledStatus = true;
+        digitalWrite(led, ledStatus);
+        lastTime = millis();
+        taskState = TaskStates::LENTO;
+        break;
+    }
+    case TaskStates::LENTO:
+    {
+        uint32_t currentTime = millis();
+        if ((currentTime - lastTime) >= INTERVALSLOW)
         {
-            uint32_t currentTime = millis();
-            if( (currentTime - lastTime) >= INTERVALSLOW ){
-                taskState = TaskStates::APAGADO;
-            }
-            break;     
-        }
+            lastTime = currentTime;
+            ledStatus = !ledStatus;
+            digitalWrite(led, ledStatus);
 
-        case TaskStates::MEDIO:
-        {
-            uint32_t currentTime = millis();
-            if( (currentTime - lastTime) >= INTERVALMEDIUM ){
-                lastTime = currentTime;
-                digitalWrite(led,ledStatus);
-                ledStatus = !ledStatus;
-                Serial.print("MEDIO ");
-                Serial.print("\n");
-            }
-            if (buttonEvt.trigger == true)
-            {
-                buttonEvt.trigger = false;
-                if (buttonEvt.whichButton == BUTTONS::TWO_BTN){
-               taskState = TaskStates::LENTO;
-                }
-               else if (buttonEvt.whichButton == BUTTONS::ONE_BTN){
-               taskState = TaskStates::ESPERA2;     
-               }
-            
-            } 
-         break;     
-        }
-
-        case TaskStates::ESPERA2:
-        {
-            uint32_t currentTime = millis();
-            if( (currentTime - lastTime) >= INTERVALSLOW ){
-                taskState = TaskStates::ENCENDIDO;
-            }
-            break;     
-        }
-
-        case TaskStates::ENCENDIDO:
-        {
-            digitalWrite(led,HIGH);
-            ledStatus = true;
-            Serial.print("ENCENDIDO ");
+            Serial.print("LENTO");
             Serial.print("\n");
-            if (buttonEvt.trigger == true)
-            {
-                buttonEvt.trigger = false;
-                if (buttonEvt.whichButton == BUTTONS::ONE_BTN){
-                  taskState = TaskStates::MEDIO;
-                } 
-                else if (buttonEvt.whichButton == BUTTONS::TWO_BTN){
-                    val = 1;
-                 taskState = TaskStates::RAPIDO;
-
-                }
-            }
-            break;     
-         
         }
-        
-        
-        case TaskStates::APAGADO:
+        if (buttonEvt.trigger == true)
         {
-            digitalWrite(led,LOW);
+            buttonEvt.trigger = false;
+            if (buttonEvt.whichButton == BUTTONS::TWO_BTN)
+            {
+                taskState = TaskStates::MEDIO;
+            }
+            else if (buttonEvt.whichButton == BUTTONS::ONE_BTN)
+            {
+                taskState = TaskStates::ESPERA1;
+            }
+        }
+        break;
+    }
+
+    case TaskStates::ESPERA1:
+    {
+        uint32_t currentTime = millis();
+        if ((currentTime - lastTime) >= INTERVALSLOW)
+        {
             ledStatus = false;
+            digitalWrite(led, ledStatus);
+
             Serial.print("APAGADO ");
             Serial.print("\n");
-            if (buttonEvt.trigger == true)
-            {
-                buttonEvt.trigger = false;
-                if (buttonEvt.whichButton == BUTTONS::ONE_BTN){
-                    digitalWrite(led, HIGH);
-                    ledStatus = true;
-                    taskState = TaskStates::LENTO;
-                }
-                 else if (buttonEvt.whichButton == BUTTONS::TWO_BTN){
-                 val = 2;
-                 digitalWrite(led, HIGH);
-                 ledStatus = true;
-                 taskState = TaskStates::RAPIDO;
-                }
-            } 
-         break;     
+            taskState = TaskStates::APAGADO;
         }
-        case TaskStates::RAPIDO:
+        break;
+    }
+
+    case TaskStates::MEDIO:
+    {
+        uint32_t currentTime = millis();
+        if ((currentTime - lastTime) >= INTERVALMEDIUM)
         {
-            uint32_t currentTime = millis();
-            if( (currentTime - lastTime) >= INTERVALFAST ){
-                lastTime = currentTime;
-                digitalWrite(led,ledStatus);
-                ledStatus = !ledStatus;
+            lastTime = currentTime;
+            ledStatus = !ledStatus;
+            digitalWrite(led, ledStatus);
+
+            Serial.print("MEDIO ");
+            Serial.print("\n");
+        }
+        if (buttonEvt.trigger == true)
+        {
+            buttonEvt.trigger = false;
+            if (buttonEvt.whichButton == BUTTONS::TWO_BTN)
+            {
+                taskState = TaskStates::LENTO;
+            }
+            else if (buttonEvt.whichButton == BUTTONS::ONE_BTN)
+            {
+                taskState = TaskStates::ESPERA2;
+            }
+        }
+        break;
+    }
+
+    case TaskStates::ESPERA2:
+    {
+        uint32_t currentTime = millis();
+        if ((currentTime - lastTime) >= INTERVALSLOW)
+        {
+            taskState = TaskStates::ENCENDIDO;
+        }
+        break;
+    }
+
+    case TaskStates::ENCENDIDO:
+    {
+        digitalWrite(led, HIGH);
+        ledStatus = true;
+        Serial.print("ENCENDIDO ");
+        Serial.print("\n");
+        if (buttonEvt.trigger == true)
+        {
+            buttonEvt.trigger = false;
+            if (buttonEvt.whichButton == BUTTONS::ONE_BTN)
+            {
+                taskState = TaskStates::MEDIO;
+            }
+            else if (buttonEvt.whichButton == BUTTONS::TWO_BTN)
+            {
+                val = 1;
                 Serial.print("RAPIDO");
                 Serial.print("\n");
+                taskState = TaskStates::RAPIDO;
             }
-            if (buttonEvt.trigger == true)
+        }
+        break;
+    }
+
+    case TaskStates::APAGADO:
+    {
+
+        if (buttonEvt.trigger == true)
+        {
+            buttonEvt.trigger = false;
+            if (buttonEvt.whichButton == BUTTONS::ONE_BTN)
             {
-                buttonEvt.trigger = false;
-                disarmKey[keyCounter] = buttonEvt.whichButton;
-                keyCounter++; 
-                if (keyCounter == 5)
+                digitalWrite(led, HIGH);
+                ledStatus = true;
+                lastTime = millis();
+                taskState = TaskStates::LENTO;
+            }
+            else if (buttonEvt.whichButton == BUTTONS::TWO_BTN)
+            {
+                val = 2;
+                digitalWrite(led, HIGH);
+                ledStatus = true;
+                Serial.print("RAPIDO");
+                Serial.print("\n");
+                taskState = TaskStates::RAPIDO;
+            }
+        }
+        break;
+    }
+    case TaskStates::RAPIDO:
+    {
+        uint32_t currentTime = millis();
+        if ((currentTime - lastTime) >= INTERVALFAST)
+        {
+            lastTime = currentTime;
+            ledStatus = !ledStatus;
+            digitalWrite(led, ledStatus);
+            
+        }
+        if (buttonEvt.trigger == true)
+        {
+            buttonEvt.trigger = false;
+            disarmKey[keyCounter] = buttonEvt.whichButton;
+            keyCounter++;
+            if (keyCounter == 5)
+            {
+                keyCounter = 0;
+                if (compareKeys(secret, disarmKey) == true)
                 {
-                    keyCounter = 0;
-                    if (compareKeys(secret, disarmKey) == true)
+                    if (val == 2)
                     {
-                        if(val==2){
-                            taskState = TaskStates::APAGADO;
-                        }
-                        else if(val==1){
-                            taskState = TaskStates::ENCENDIDO;
-                        }
+                        taskState = TaskStates::APAGADO;
+                    }
+                    else if (val == 1)
+                    {
+                        taskState = TaskStates::ENCENDIDO;
                     }
                 }
-            
-            } 
-         break;     
+            }
         }
-        
-       
+        break;
+    }
     }
 }
-
-

@@ -15,8 +15,8 @@ void task2(){
     static uint8_t lastButtonPressed;
     static uint32_t initStableTime;
 
-    const uint8_t ONE_BTN_PIN = 13;
-    const uint8_t TWO_BTN_PIN = 12;
+    const uint8_t ONE_BTN_PIN = 6;
+    const uint8_t TWO_BTN_PIN = 7;
     const uint32_t STABLE_TIME = 100;
 
     switch (taskState)
