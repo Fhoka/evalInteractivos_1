@@ -19,7 +19,7 @@ static bool compareKeys(BUTTONS *pSecret, BUTTONS *pKey)
 void task3(){
     enum class TaskStates
     {
-        INIT,LENTO, MEDIO, RAPIDO, ENCENDIDO, APAGADO
+        INIT,LENTO, MEDIO, RAPIDO, ENCENDIDO, APAGADO, ESPERA1, ESPERA2
     };
     static TaskStates taskState = TaskStates::LENTO;
     const uint8_t led = 11;
@@ -63,14 +63,22 @@ void task3(){
                  taskState = TaskStates::MEDIO;   
                 }
                 else if (buttonEvt.whichButton == BUTTONS::ONE_BTN){
-                 taskState = TaskStates::APAGADO;     
+                 taskState = TaskStates::ESPERA1;     
                 }
             
-            }
-
-            
+            } 
          break;
         }
+
+        case TaskStates::ESPERA1:
+        {
+            uint32_t currentTime = millis();
+            if( (currentTime - lastTime) >= INTERVALSLOW ){
+                taskState = TaskStates::APAGADO;
+            }
+            break;     
+        }
+
         case TaskStates::MEDIO:
         {
             uint32_t currentTime = millis();
@@ -88,15 +96,26 @@ void task3(){
                taskState = TaskStates::LENTO;
                 }
                else if (buttonEvt.whichButton == BUTTONS::ONE_BTN){
-               taskState = TaskStates::ENCENDIDO;     
+               taskState = TaskStates::ESPERA2;     
                }
             
             } 
          break;     
         }
+
+        case TaskStates::ESPERA2:
+        {
+            uint32_t currentTime = millis();
+            if( (currentTime - lastTime) >= INTERVALSLOW ){
+                taskState = TaskStates::ENCENDIDO;
+            }
+            break;     
+        }
+
         case TaskStates::ENCENDIDO:
         {
             digitalWrite(led,HIGH);
+            ledStatus = true;
             Serial.print("ENCENDIDO ");
             Serial.print("\n");
             if (buttonEvt.trigger == true)
@@ -119,16 +138,21 @@ void task3(){
         case TaskStates::APAGADO:
         {
             digitalWrite(led,LOW);
+            ledStatus = false;
             Serial.print("APAGADO ");
             Serial.print("\n");
             if (buttonEvt.trigger == true)
             {
                 buttonEvt.trigger = false;
                 if (buttonEvt.whichButton == BUTTONS::ONE_BTN){
+                    digitalWrite(led, HIGH);
+                    ledStatus = true;
                     taskState = TaskStates::LENTO;
                 }
                  else if (buttonEvt.whichButton == BUTTONS::TWO_BTN){
                  val = 2;
+                 digitalWrite(led, HIGH);
+                 ledStatus = true;
                  taskState = TaskStates::RAPIDO;
 
                 }
